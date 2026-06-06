@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bebidas Pro</title>
+<style>
+body{margin:0;font-family:Arial;background:#f3f4f6;color:#111827}
+.screen{display:none;height:100vh;justify-content:center;align-items:center}
+.show{display:flex}
+.card{background:white;padding:20px;border-radius:12px;width:90%;max-width:400px}
+input,textarea,button{width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #ccc}
+button{background:#2563eb;color:white;border:none;cursor:pointer}
+/* DASHBOARD */
+#dashboard{display:none}
+/* MENU */
+#menu{position:fixed;left:0;top:0;width:220px;height:100%;background:#111827;color:white;padding:10px;transform:translateX(-100%);transition:.3s}
+#menu.active{transform:translateX(0)}
+#menu button{width:100%;background:none;border:none;color:white;padding:12px;text-align:left;cursor:pointer}
+/* MAIN */
+#main{margin-left:0;padding:15px;min-height:100vh;transition:.3s}
+#main.shift{margin-left:220px}
+/* BOTÓN MENU */
+#burger{position:fixed;top:10px;left:10px;background:#2563eb;color:white;border:none;padding:10px 12px;border-radius:8px;cursor:pointer;z-index:999}
+/* CARDS */
+.cardItem{background:white;padding:10px;margin:10px 0;border-radius:10px}
+.cardItem button{margin-top:5px}
+/* SECCIONES */
+.section{display:none}
+.active{display:block}
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.box{background:white;padding:10px;border-radius:10px;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login" class="screen show">
+  <div class="card">
+    <h2>Login</h2>
+    <input id="user" placeholder="Usuario">
+    <input id="pass" type="password" placeholder="Contraseña">
+    <button onclick="login()">Ingresar</button>
+  </div>
+</div>
+
+<!-- CÓDIGO -->
+<div id="code" class="screen">
+  <div class="card">
+    <h2>Código</h2>
+    <input id="codeInput">
+    <button onclick="checkCode()">Entrar</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+<button id="burger" onclick="toggleMenu()">☰</button>
+<div id="menu">
+  <h3>🍹 Sistema Bebidas</h3>
+  <button onclick="openTab('home')">Inicio</button>
+  <button onclick="openTab('products')">Productos</button>
+  <button onclick="openTab('companies')">Empresas</button>
+  <button onclick="logout()">Salir</button>
+</div>
+
+<div id="main">
+
+<!-- HOME -->
+<div id="home" class="section active">
+  <h2>Referencias / Catálogo</h2>
+  <div class="grid" id="homeGrid"></div>
+</div>
+
+<!-- PRODUCTOS -->
+<div id="products" class="section">
+  <h2>Productos</h2>
+  <input id="prodName" placeholder="Nombre producto">
+  <textarea id="prodDesc" placeholder="Descripción"></textarea>
+  <input id="prodComp" placeholder="Empresa asociada">
+  <button onclick="addProduct()">Agregar</button>
+  <div id="productList"></div>
+</div>
+
+<!-- EMPRESAS -->
+<div id="companies" class="section">
+  <h2>Empresas</h2>
+  <input id="compName" placeholder="Nombre Empresa">
+  <input id="compProd" placeholder="Producto asociado">
+  <button onclick="addCompany()">Agregar</button>
+  <div id="companyList"></div>
+</div>
+
+</div>
+</div>
+
+<script>
+let code = 0
+let products = [
+  {name:"Coca Cola", desc:"Bebida gaseosa de cola dulce y refrescante.", company:"Distribuidora A"},
+  {name:"Pepsi", desc:"Bebida de cola más dulce.", company:"Tienda B"},
+  {name:"Fanta Naranja", desc:"Bebida de naranja refrescante.", company:"Mayorista C"},
+  {name:"Sprite", desc:"Bebida limón-lima sin cafeína.", company:"Supermercado D"}
+]
+
+let companies = [
+  {name:"Distribuidora A", product:"Coca Cola"},
+  {name:"Tienda B", product:"Pepsi"},
+  {name:"Mayorista C", product:"Fanta Naranja"},
+  {name:"Supermercado D", product:"Sprite"}
+]
+
+// LOGIN
+function login(){
+  let u = document.getElementById("user").value
+  let p = document.getElementById("pass").value
+  if(u==="admin" && p==="1234"){
+    code = Math.floor(1000 + Math.random()*9000)
+    alert("Código: " + code)
+    document.getElementById("login").style.display="none"
+    document.getElementById("code").style.display="flex"
+  } else alert("Login incorrecto")
+}
+
+function checkCode(){
+  let c=document.getElementById("codeInput").value
+  if(c==code){
+    document.getElementById("code").style.display="none"
+    document.getElementById("dashboard").style.display="block"
+    render()
+  } else alert("Código incorrecto")
+}
+
+function toggleMenu(){
+  document.getElementById("menu").classList.toggle("active")
+  document.getElementById("main").classList.toggle("shift")
+}
+
+function openTab(tab){
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"))
+  document.getElementById(tab).classList.add("active")
+  document.getElementById("menu").classList.remove("active")
+  document.getElementById("main").classList.remove("shift")
+}
+
+function addProduct(){
+  let name=document.getElementById("prodName").value
+  let desc=document.getElementById("prodDesc").value
+  let comp=document.getElementById("prodComp").value
+  if(name && desc && comp){
+    products.push({name,desc,company:comp})
+    render()
+  }
+}
+
+function addCompany(){
+  let n=document.getElementById("compName").value
+  let p=document.getElementById("compProd").value
+  if(n && p){
+    companies.push({name:n,product:p})
+    render()
+  }
+}
+
+function render(){
+  let phtml="",homeHtml=""
+  products.forEach((p,i)=>{
+    phtml+=`<div class="cardItem"><b>${p.name}</b><br>${p.desc}<br>Empresa: ${p.company}<br>
+    <button onclick="products.splice(${i},1);render()">Eliminar</button></div>`
+    homeHtml+=`<div class="box"><b>${p.name}</b><br>${p.desc}</div>`
+  })
+  document.getElementById("productList").innerHTML=phtml
+  document.getElementById("homeGrid").innerHTML=homeHtml
+
+  let chtml=""
+  companies.forEach((c,i)=>{
+    chtml+=`<div class="cardItem"><b>${c.name}</b> - ${c.product}<br>
+    <button onclick="companies.splice(${i},1);render()">Eliminar</button></div>`
+  })
+  document.getElementById("companyList").innerHTML=chtml
+}
+
+function logout(){location.reload()}
+</script>
+</body>
+</html>
